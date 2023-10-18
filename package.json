@@ -1,0 +1,41 @@
+{
+  "name": "zl-pixi-graph",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/pixiGraph.js",
+  "module": "src/index.js",
+  "scripts": {
+    "dev": "webpack serve --env mode=development",
+    "build": "webpack --env mode=production",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "html-webpack-plugin": "^5.5.3",
+    "ts-loader": "^9.5.0",
+    "typescript": "^5.2.2",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1",
+    "webpack-merge": "^5.10.0"
+  },
+  "dependencies": {
+    "@pixi-essentials/cull": "^2.0.0",
+    "@pixi/app": "^7.3.1",
+    "@pixi/core": "^7.3.1",
+    "@pixi/display": "^7.3.1",
+    "@pixi/events": "^7.3.1",
+    "@pixi/extract": "^7.3.1",
+    "@pixi/graphics": "^7.3.1",
+    "@pixi/mixin-get-child-by-name": "^7.3.1",
+    "@pixi/sprite": "^7.3.1",
+    "@pixi/text": "^7.3.1",
+    "@pixi/text-bitmap": "^7.3.1",
+    "@pixi/ticker": "^7.3.1",
+    "color-rgba": "^3.0.0",
+    "deepmerge": "^4.3.1",
+    "pixi-viewport": "^5.0.2"
+  }
+}
