@@ -1,5 +1,3 @@
-console.log('test123');
+// export { PixiGraph } from './graph';
 
-export function a() {
-  console.log('test456');
-}
+import './demo';

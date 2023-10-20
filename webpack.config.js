@@ -13,10 +13,10 @@ module.exports = env => {
       filename: '[name].js',
       path: path.resolve(__dirname, 'dist'),
       clean: true,
-      library: {
-        name: 'pixiGraph',
-        type: 'umd'
-      }
+      // library: {
+      //   name: 'pixiGraph',
+      //   type: 'umd'
+      // }
     },
 
     devtool: env.mode === 'development' ? 'inline-source-map' : 'source-map',
@@ -27,7 +27,8 @@ module.exports = env => {
 
     plugins: [
       new HtmlWebpackPlugin({
-        title: 'pixi-graph-demo'
+        title: 'pixi-graph-demo',
+        template: 'index.html'
       })
     ],
 
@@ -38,13 +39,22 @@ module.exports = env => {
     module: {
       rules: [
         {
+          test: /\.css$/i,
+          use: ['style-loader', 'css-loader'],
+        },
+        {
           test: /\.ts?$/,
           use: 'ts-loader',
           exclude: /node_modules/
         },
         {
           test: /\.(png|svg|jpg|jpeg|gif)$/i,
-          type: 'asset/resource'
+          type: 'asset/resource',
+          // parser: {
+          //   dataUrlCondition: {
+          //     maxSize: 4 * 1024 // 4kb
+          //   }
+          // }
         }
       ]
     }
