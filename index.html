@@ -24,203 +24,186 @@
 
 
   <script>
-    (function (global, factory) {
-      typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-        typeof define === 'function' && define.amd ? define(factory) :
-          (global.Stats = factory());
-    }(this, (function () {
-      'use strict';
+    var Stats = function () {
 
-      /**
-       * @author mrdoob / http://mrdoob.com/
-       */
+      var mode = 0;
 
-      var Stats = function () {
+      var container = document.createElement('div');
+      container.style.cssText = 'position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000';
+      container.addEventListener('click', function (event) {
 
-        var mode = 0;
+        event.preventDefault();
+        showPanel(++mode % container.children.length);
 
-        var container = document.createElement('div');
-        container.style.cssText = 'position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000';
-        container.addEventListener('click', function (event) {
+      }, false);
 
-          event.preventDefault();
-          showPanel(++mode % container.children.length);
+      //
 
-        }, false);
+      function addPanel(panel) {
 
-        //
+        container.appendChild(panel.dom);
+        return panel;
 
-        function addPanel(panel) {
+      }
 
-          container.appendChild(panel.dom);
-          return panel;
+      function showPanel(id) {
+
+        for (var i = 0; i < container.children.length; i++) {
+
+          container.children[i].style.display = i === id ? 'block' : 'none';
 
         }
 
-        function showPanel(id) {
+        mode = id;
 
-          for (var i = 0; i < container.children.length; i++) {
+      }
 
-            container.children[i].style.display = i === id ? 'block' : 'none';
+      //
 
-          }
+      var beginTime = (performance || Date).now(), prevTime = beginTime, frames = 0;
 
-          mode = id;
+      var fpsPanel = addPanel(new Stats.Panel('FPS', '#0ff', '#002'));
+      var msPanel = addPanel(new Stats.Panel('MS', '#0f0', '#020'));
 
-        }
+      if (self.performance && self.performance.memory) {
 
-        //
+        var memPanel = addPanel(new Stats.Panel('MB', '#f08', '#201'));
 
-        var beginTime = (performance || Date).now(), prevTime = beginTime, frames = 0;
+      }
 
-        var fpsPanel = addPanel(new Stats.Panel('FPS', '#0ff', '#002'));
-        var msPanel = addPanel(new Stats.Panel('MS', '#0f0', '#020'));
+      showPanel(0);
 
-        if (self.performance && self.performance.memory) {
+      return {
 
-          var memPanel = addPanel(new Stats.Panel('MB', '#f08', '#201'));
+        REVISION: 16,
 
-        }
+        dom: container,
 
-        showPanel(0);
+        addPanel: addPanel,
+        showPanel: showPanel,
 
-        return {
+        begin: function () {
 
-          REVISION: 16,
+          beginTime = (performance || Date).now();
 
-          dom: container,
+        },
 
-          addPanel: addPanel,
-          showPanel: showPanel,
+        end: function () {
 
-          begin: function () {
+          frames++;
 
-            beginTime = (performance || Date).now();
+          var time = (performance || Date).now();
 
-          },
+          msPanel.update(time - beginTime, 200);
 
-          end: function () {
+          if (time > prevTime + 1000) {
 
-            frames++;
+            fpsPanel.update((frames * 1000) / (time - prevTime), 100);
 
-            var time = (performance || Date).now();
+            prevTime = time;
+            frames = 0;
 
-            msPanel.update(time - beginTime, 200);
+            if (memPanel) {
 
-            if (time > prevTime + 1000) {
-
-              fpsPanel.update((frames * 1000) / (time - prevTime), 100);
-
-              prevTime = time;
-              frames = 0;
-
-              if (memPanel) {
-
-                var memory = performance.memory;
-                memPanel.update(memory.usedJSHeapSize / 1048576, memory.jsHeapSizeLimit / 1048576);
-
-              }
+              var memory = performance.memory;
+              memPanel.update(memory.usedJSHeapSize / 1048576, memory.jsHeapSizeLimit / 1048576);
 
             }
 
-            return time;
-
-          },
-
-          update: function () {
-
-            beginTime = this.end();
-
-          },
-
-          // Backwards Compatibility
-
-          domElement: container,
-          setMode: showPanel
-
-        };
-
-      };
-
-      Stats.Panel = function (name, fg, bg) {
-
-        var min = Infinity, max = 0, round = Math.round;
-        var PR = round(window.devicePixelRatio || 1);
-
-        var WIDTH = 80 * PR, HEIGHT = 48 * PR,
-          TEXT_X = 3 * PR, TEXT_Y = 2 * PR,
-          GRAPH_X = 3 * PR, GRAPH_Y = 15 * PR,
-          GRAPH_WIDTH = 74 * PR, GRAPH_HEIGHT = 30 * PR;
-
-        var canvas = document.createElement('canvas');
-        canvas.width = WIDTH;
-        canvas.height = HEIGHT;
-        canvas.style.cssText = 'width:80px;height:48px';
-
-        var context = canvas.getContext('2d');
-        context.font = 'bold ' + (9 * PR) + 'px Helvetica,Arial,sans-serif';
-        context.textBaseline = 'top';
-
-        context.fillStyle = bg;
-        context.fillRect(0, 0, WIDTH, HEIGHT);
-
-        context.fillStyle = fg;
-        context.fillText(name, TEXT_X, TEXT_Y);
-        context.fillRect(GRAPH_X, GRAPH_Y, GRAPH_WIDTH, GRAPH_HEIGHT);
-
-        context.fillStyle = bg;
-        context.globalAlpha = 0.9;
-        context.fillRect(GRAPH_X, GRAPH_Y, GRAPH_WIDTH, GRAPH_HEIGHT);
-
-        return {
-
-          dom: canvas,
-
-          update: function (value, maxValue) {
-
-            min = Math.min(min, value);
-            max = Math.max(max, value);
-
-            context.fillStyle = bg;
-            context.globalAlpha = 1;
-            context.fillRect(0, 0, WIDTH, GRAPH_Y);
-            context.fillStyle = fg;
-            context.fillText(round(value) + ' ' + name + ' (' + round(min) + '-' + round(max) + ')', TEXT_X, TEXT_Y);
-
-            context.drawImage(canvas, GRAPH_X + PR, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT, GRAPH_X, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT);
-
-            context.fillRect(GRAPH_X + GRAPH_WIDTH - PR, GRAPH_Y, PR, GRAPH_HEIGHT);
-
-            context.fillStyle = bg;
-            context.globalAlpha = 0.9;
-            context.fillRect(GRAPH_X + GRAPH_WIDTH - PR, GRAPH_Y, PR, round((1 - (value / maxValue)) * GRAPH_HEIGHT));
-
           }
 
-        };
+          return time;
+
+        },
+
+        update: function () {
+
+          beginTime = this.end();
+
+        },
+
+        // Backwards Compatibility
+
+        domElement: container,
+        setMode: showPanel
 
       };
 
-      return Stats;
+    };
 
-    })));
+    Stats.Panel = function (name, fg, bg) {
 
-    (function () {
-      // var script = document.createElement('script');
-      // script.onload = function () {
-        var stats = new Stats();
-        // stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
-        stats.dom.style.top = '';
-        stats.dom.style.bottom = '0px';
-        document.body.appendChild(stats.dom);
-        requestAnimationFrame(function loop() {
-          stats.update();
-          requestAnimationFrame(loop);
-        });
-      // };
-      // script.src = './js/stats.js';
-      // document.head.appendChild(script);
-    })()
+      var min = Infinity, max = 0, round = Math.round;
+      var PR = round(window.devicePixelRatio || 1);
+
+      var WIDTH = 80 * PR, HEIGHT = 48 * PR,
+        TEXT_X = 3 * PR, TEXT_Y = 2 * PR,
+        GRAPH_X = 3 * PR, GRAPH_Y = 15 * PR,
+        GRAPH_WIDTH = 74 * PR, GRAPH_HEIGHT = 30 * PR;
+
+      var canvas = document.createElement('canvas');
+      canvas.width = WIDTH;
+      canvas.height = HEIGHT;
+      canvas.style.cssText = 'width:80px;height:48px';
+
+      var context = canvas.getContext('2d');
+      context.font = 'bold ' + (9 * PR) + 'px Helvetica,Arial,sans-serif';
+      context.textBaseline = 'top';
+
+      context.fillStyle = bg;
+      context.fillRect(0, 0, WIDTH, HEIGHT);
+
+      context.fillStyle = fg;
+      context.fillText(name, TEXT_X, TEXT_Y);
+      context.fillRect(GRAPH_X, GRAPH_Y, GRAPH_WIDTH, GRAPH_HEIGHT);
+
+      context.fillStyle = bg;
+      context.globalAlpha = 0.9;
+      context.fillRect(GRAPH_X, GRAPH_Y, GRAPH_WIDTH, GRAPH_HEIGHT);
+
+      return {
+
+        dom: canvas,
+
+        update: function (value, maxValue) {
+
+          min = Math.min(min, value);
+          max = Math.max(max, value);
+
+          context.fillStyle = bg;
+          context.globalAlpha = 1;
+          context.fillRect(0, 0, WIDTH, GRAPH_Y);
+          context.fillStyle = fg;
+          context.fillText(round(value) + ' ' + name + ' (' + round(min) + '-' + round(max) + ')', TEXT_X, TEXT_Y);
+
+          context.drawImage(canvas, GRAPH_X + PR, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT, GRAPH_X, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT);
+
+          context.fillRect(GRAPH_X + GRAPH_WIDTH - PR, GRAPH_Y, PR, GRAPH_HEIGHT);
+
+          context.fillStyle = bg;
+          context.globalAlpha = 0.9;
+          context.fillRect(GRAPH_X + GRAPH_WIDTH - PR, GRAPH_Y, PR, round((1 - (value / maxValue)) * GRAPH_HEIGHT));
+
+        }
+
+      };
+
+    };
+
+    // var script = document.createElement('script');
+    // script.onload = function () {
+    var stats = new Stats();
+    // stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+    stats.dom.style.top = '';
+    stats.dom.style.bottom = '0px';
+    document.body.appendChild(stats.dom);
+    requestAnimationFrame(function loop() {
+      stats.update();
+      requestAnimationFrame(loop);
+    });
+    // };
+    // script.src = './js/stats.js';
+    // document.head.appendChild(script);
   </script>
 </body>
 

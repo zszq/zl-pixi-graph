@@ -39,6 +39,7 @@
     "graphology": "^0.25.4",
     "graphology-layout-forceatlas2": "^0.10.1",
     "pixi-viewport": "^5.0.2",
+    "stats.js": "^0.17.0",
     "tiny-typed-emitter2": "^1.0.0"
   }
 }

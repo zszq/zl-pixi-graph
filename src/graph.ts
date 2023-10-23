@@ -14,6 +14,7 @@ import '@pixi/extract';
 
 import Icon from '@/images/yz.png';
 import { createNode } from './renderers/node/node';
+import { createEdge, createEdgeGfx } from './renderers/edge/edge';
 
 export class PixiGraph extends TypedEmitter<PixiGraphEvents> {
   container: HTMLElement;
@@ -120,17 +121,38 @@ export class PixiGraph extends TypedEmitter<PixiGraphEvents> {
     circle.addChild(image);
 
     this.nodeLayer.addChild(circle);
+    this.viewport.addChild(this.edgeLayer);
     this.viewport.addChild(this.nodeLayer);
 
     this.process();
+
+    // this.culling();
   }
 
   private process() {
     this.graph.forEachNode((nodeKey, attributes) => {
-      let node = createNode(nodeKey, attributes);
+      let node = createNode(nodeKey, attributes, this.viewport);
       this.nodeLayer.addChild(node);
     });
 
-    // this.graph.forEachEdge(this.createEdge.bind(this));
+    this.graph.forEachEdge((edgeKey, attributes) => {
+      // console.log(edgeKey, attributes);
+      const sourceNodeKey = this.graph.source(edgeKey);
+      const targetNodeKey = this.graph.target(edgeKey);
+      const sourceNodeAttributes = this.graph.getNodeAttributes(sourceNodeKey);
+      const targetNodeAttributes = this.graph.getNodeAttributes(targetNodeKey);
+      const sourceNodePosition = { x: sourceNodeAttributes.x, y: sourceNodeAttributes.y };
+      const targetNodePosition = { x: targetNodeAttributes.x, y: targetNodeAttributes.y };
+
+      let edge = createEdge(edgeKey, attributes, sourceNodePosition, targetNodePosition);
+      // let edge = createEdgeGfx(edgeKey, attributes, sourceNodePosition, targetNodePosition);
+      // this.edgeLayer.addChild(edge);
+    });
+  }
+
+  // 剔除
+  culling() {
+    this.cull.addAll((this.viewport.children as Container[]).map(layer => layer.children).flat());
+    this.cull.cull(this.app.renderer.screen);
   }
 }
